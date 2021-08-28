@@ -1,4 +1,4 @@
-TARGET = .\bin\lab1
+TARGET = .\bin\mp0
 
 SRC_DIR = .\src
 SRC_SUBDIR += .
@@ -28,7 +28,7 @@ OBJS += ${foreach src, $(notdir $(LIBWB_SRCS)), ${patsubst %.cpp, $(LIBWB_OBJ_DI
 
 
 all: $(TARGET)
-	@echo Builded target: $^
+	@echo Builded target: $^.exe
 	@echo Done
 
 $(TARGET): $(OBJS)
@@ -68,6 +68,9 @@ cleanobj:
 cleanLibwb:
 	@echo Remove libwb object files
 	@-$(RM) "$(LIBWB_OBJ_DIR)\*.obj"
+
+case:
+	@./bin/mp0.exe
 
 
 
