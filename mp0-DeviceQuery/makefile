@@ -39,7 +39,7 @@ $(TARGET): $(OBJS)
 $(OBJ_DIR)/%.obj: $(SRC_DIR)/%.cu
 	@if not exist "$(@D)" mkdir "$(@D)"
 	@echo Compiling $@ from $< ...
-	nvcc -c $< -o $@
+	nvcc -I $(LIBWB_SRC_DIR) -c $< -o $@
 	@echo Compile finished
 
 $(LIBWB_OBJ_DIR)/%.obj: $(LIBWB_SRC_DIR)/%.cpp
