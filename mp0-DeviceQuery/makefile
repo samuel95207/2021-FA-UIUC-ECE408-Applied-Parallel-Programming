@@ -19,7 +19,6 @@ LD_LIBS =
 RM = del
 
 
-# SRCS += ${foreach subdir, $(SRC_SUBDIR), ${wildcard $(SRC_DIR)/$(subdir)/*.$(TYPE)}}
 SRCS += ${foreach subdir, $(SRC_SUBDIR), ${wildcard $(SRC_DIR)/$(subdir)/*.cu}}
 OBJS += ${foreach src, $(notdir $(SRCS)), ${patsubst %.cu, $(OBJ_DIR)/%.obj, $(src)}}
 
