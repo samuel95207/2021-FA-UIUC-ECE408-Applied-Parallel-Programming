@@ -1,4 +1,4 @@
-TARGET = .\bin\mp1
+TARGET = .\bin\mp2
 
 SRC_DIR = .\src
 SRC_SUBDIR += .
