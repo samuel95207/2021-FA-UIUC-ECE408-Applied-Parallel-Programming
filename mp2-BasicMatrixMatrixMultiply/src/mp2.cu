@@ -22,25 +22,14 @@ __global__ void matrixMultiply(float *A, float *B, float *C, int numARows,
     int row = blockIdx.x * blockDim.x + threadIdx.x;
     int col = blockIdx.y * blockDim.y + threadIdx.y;
 
-    // printf("(%d, %d)\n", row, col);
-
     if (row < numCRows && col < numCColumns)
     {
         float sum = 0.0;
         for (int i = 0; i < numAColumns; i++)
         {
             sum += A[row * numAColumns + i] * B[i * numBColumns + col];
-            // if (row == 2 && col == 0)
-            // {
-            //     printf("sum += %f * %f = %f\n", A[row * numARows + i], B[i * numBColumns + col], sum);
-            // }
         }
         C[row * numCColumns + col] = sum;
-
-        // if (row == 2 && col == 0)
-        // {
-        //     printf("%f\n", sum);
-        // }
     }
 }
 
@@ -118,6 +107,7 @@ int main(int argc, char **argv)
     //@@ Copy the GPU memory back to the CPU here
     cudaMemcpy(hostC, deviceC, sizeC, cudaMemcpyDeviceToHost);
 
+    // Print out matrix to debug
     // for (int i = 0; i < numCRows; i++)
     // {
     //     for (int j = 0; j < numCColumns; j++)
