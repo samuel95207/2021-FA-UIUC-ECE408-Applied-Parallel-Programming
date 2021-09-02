@@ -12,6 +12,8 @@
         }                                                                  \
     } while (0)
 
+#define BLOCK_WIDTH 16
+
 // Compute C = A * B
 __global__ void matrixMultiply(float *A, float *B, float *C, int numARows,
                                int numAColumns, int numBRows,
@@ -90,8 +92,8 @@ int main(int argc, char **argv)
     wbTime_stop(GPU, "Copying input memory to the GPU.");
 
     //@@ Initialize the grid and block dimensions here
-    dim3 DimGrid(ceil(numCRows / 16.0), ceil(numCColumns / 16.0), 1);
-    dim3 DimBlock(16, 16, 1);
+    dim3 DimGrid(ceil(numCRows / float(BLOCK_WIDTH)), ceil(numCColumns / float(BLOCK_WIDTH)), 1);
+    dim3 DimBlock(BLOCK_WIDTH, BLOCK_WIDTH, 1);
 
     wbTime_start(Compute, "Performing CUDA computation");
     //@@ Launch the GPU Kernel here
