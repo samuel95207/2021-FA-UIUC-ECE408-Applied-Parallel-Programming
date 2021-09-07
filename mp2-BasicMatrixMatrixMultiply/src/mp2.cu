@@ -21,8 +21,8 @@ __global__ void matrixMultiply(float *A, float *B, float *C, int numARows,
                                int numCColumns)
 {
     //@@ Insert code to implement matrix multiplication here
-    int row = blockIdx.x * blockDim.x + threadIdx.x;
-    int col = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (row < numCRows && col < numCColumns)
     {
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     wbTime_stop(GPU, "Copying input memory to the GPU.");
 
     //@@ Initialize the grid and block dimensions here
-    dim3 DimGrid(ceil(numCRows / float(BLOCK_WIDTH)), ceil(numCColumns / float(BLOCK_WIDTH)), 1);
+    dim3 DimGrid(ceil(numCColumns / float(BLOCK_WIDTH)), ceil(numCRows / float(BLOCK_WIDTH)), 1);
     dim3 DimBlock(BLOCK_WIDTH, BLOCK_WIDTH, 1);
 
     wbTime_start(Compute, "Performing CUDA computation");
