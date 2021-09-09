@@ -30,7 +30,8 @@ __global__ void matrixMultiply(float* A, float* B, float* C, int numARows,
     int col = bx * BLOCK_WIDTH + tx;
 
     float sum = 0.0;
-    for (int i = 0; i < (BLOCK_WIDTH + numAColumns - 1) / BLOCK_WIDTH; i++) {
+    int tileColumnNum = (BLOCK_WIDTH + numAColumns - 1) / BLOCK_WIDTH;
+    for (int i = 0; i < tileColumnNum; i++) {
         if (i * BLOCK_WIDTH + tx < numAColumns && row < numARows) {
             subTileA[ty][tx] = A[row * numAColumns + i * BLOCK_WIDTH + tx];
         } else {
