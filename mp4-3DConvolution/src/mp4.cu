@@ -37,8 +37,7 @@ __global__ void conv3d(float *input, float *output, const int z_size,
     int z_idx_in = z_idx_out - ((int)KERNEL_WIDTH / 2);
 
     // Load all input in the tile into share memory
-    if (x_idx_in >= 0 && y_idx_in >= 0 && z_idx_in >= 0 && x_idx_in < x_size
-    &&
+    if (x_idx_in >= 0 && y_idx_in >= 0 && z_idx_in >= 0 && x_idx_in < x_size &&
         y_idx_in < y_size && z_idx_in < z_size) {
         N_ds[tz][ty][tx] =
             input[z_idx_in * x_size * y_size + y_idx_in * x_size + x_idx_in];
@@ -52,8 +51,7 @@ __global__ void conv3d(float *input, float *output, const int z_size,
         for (int i = 0; i < KERNEL_WIDTH; i++) {
             for (int j = 0; j < KERNEL_WIDTH; j++) {
                 for (int k = 0; k < KERNEL_WIDTH; k++) {
-                    sum += deviceKernel[i][j][k] * N_ds[i + tz][j + ty][k +
-                    tx];
+                    sum += deviceKernel[i][j][k] * N_ds[i + tz][j + ty][k + tx];
                 }
             }
         }
@@ -148,7 +146,7 @@ int main(int argc, char *argv[]) {
     //     }
     //     std::cout << std::endl;
     // }
-    
+
     wbTime_stop(Copy, "Copying data from the GPU");
 
     wbTime_stop(GPU, "Doing GPU Computation (memory + compute)");
