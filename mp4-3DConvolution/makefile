@@ -68,7 +68,7 @@ cleanLibwb:
 
 
 case%:
-	@$(TARGET).exe -i .\data\$(patsubst case%,%,$@)\input0.raw,.\data\$(patsubst case%,%,$@)\input1.raw -e .\data\$(patsubst case%,%,$@)\output.raw -t vector
+	@$(TARGET).exe -i .\data\$(patsubst case%,%,$@)\input.dat,.\data\$(patsubst case%,%,$@)\kernel.dat -e .\data\$(patsubst case%,%,$@)\output.dat -t vector
 
 
 
