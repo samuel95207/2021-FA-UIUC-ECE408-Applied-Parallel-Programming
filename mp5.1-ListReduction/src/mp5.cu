@@ -40,7 +40,7 @@ __global__ void total(float *input, float *output, int len) {
         partialSum[BLOCK_SIZE + t] = 0;
     }
 
-    for (unsigned int stride = blockDim.x; stride >= 1; stride /= 2) {
+    for (unsigned int stride = blockDim.x; stride >= 1; stride = stride >> 1) {
         __syncthreads();
         if (t < stride) {
             partialSum[t] += partialSum[t + stride];
