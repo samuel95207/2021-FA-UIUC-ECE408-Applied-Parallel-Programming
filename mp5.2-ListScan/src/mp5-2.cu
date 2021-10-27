@@ -18,7 +18,7 @@
         }                                                                  \
     } while (0)
 
-__global__ void scan(float *input, float *output, int len, float *scanSumArray) {
+__global__ void scan(float *input, float *output, int len, float *blockSumArray) {
     //@@ Modify the body of this function to complete the functionality of
     //@@ the scan on the device
     //@@ You may need multiple kernel calls; write your kernels before this
@@ -35,6 +35,7 @@ __global__ void scan(float *input, float *output, int len, float *scanSumArray) 
     XY[tx] = i < len ? input[i] : 0;
     XY[tx + bDimx] = i + bDimx < len ? input[i + bDimx] : 0;
 
+    // Reduction Step
     for (unsigned int stride = 1; stride <= bDimx; stride = stride << 1) {
         __syncthreads();
         int index = (tx + 1) * 2 * stride - 1;
@@ -43,6 +44,7 @@ __global__ void scan(float *input, float *output, int len, float *scanSumArray) 
         }
     }
 
+    // Post Scan Step
     for (int stride = BLOCK_SIZE / 2; stride > 0; stride = stride >> 1) {
         __syncthreads();
         int index = (tx + 1) * stride * 2 - 1;
@@ -60,24 +62,24 @@ __global__ void scan(float *input, float *output, int len, float *scanSumArray) 
     }
 
     __syncthreads();
-    if (tx == BLOCK_SIZE - 1) {
-        scanSumArray[bx] = XY[2 * BLOCK_SIZE - 1];
+    if (tx == BLOCK_SIZE - 1 && blockSumArray != nullptr) {
+        blockSumArray[bx] = XY[2 * BLOCK_SIZE - 1];
     }
 }
 
-__global__ void add(float *scanSumArray, float *output, int len) {
+__global__ void addOffset(float *output, float *blockSumArray, int len) {
     unsigned int i = threadIdx.x + (blockIdx.x * blockDim.x * 2);
 
-    __shared__ float increment;
+    __shared__ float offset;
 
     if (threadIdx.x == 0) {
-        increment = blockIdx.x == 0 ? 0 : scanSumArray[blockIdx.x - 1];
+        offset = blockIdx.x == 0 ? 0 : blockSumArray[blockIdx.x - 1];
     }
 
     __syncthreads();
 
-    output[i] += increment;
-    output[i + blockDim.x] += increment;
+    output[i] += offset;
+    output[i + blockDim.x] += offset;
 }
 
 
@@ -87,7 +89,7 @@ int main(int argc, char **argv) {
     float *hostOutput;  // The output list
     float *deviceInput;
     float *deviceOutput;
-    float *deviceScanSumArray;
+    float *deviceBlockSumArray;
     int numElements;  // number of elements in the list
 
     args = wbArg_read(argc, argv);
@@ -100,10 +102,12 @@ int main(int argc, char **argv) {
     wbLog(TRACE, "The number of input elements in the input is ",
           numElements);
 
+    int blockSumSize = ceil(numElements / (2.0 * BLOCK_SIZE)) * sizeof(float);
+
     wbTime_start(GPU, "Allocating GPU memory.");
     wbCheck(cudaMalloc((void **)&deviceInput, numElements * sizeof(float)));
     wbCheck(cudaMalloc((void **)&deviceOutput, numElements * sizeof(float)));
-    wbCheck(cudaMalloc((void **)&deviceScanSumArray, ceil(numElements/(2.0*BLOCK_SIZE)) * sizeof(float)));
+    wbCheck(cudaMalloc((void **)&deviceBlockSumArray, blockSumSize));
     wbTime_stop(GPU, "Allocating GPU memory.");
 
     wbTime_start(GPU, "Clearing output memory.");
@@ -124,9 +128,9 @@ int main(int argc, char **argv) {
     wbTime_start(Compute, "Performing CUDA computation");
     //@@ Modify this to complete the functionality of the scan
     //@@ on the deivce
-    scan<<<dimGrid, dimBlock>>>(deviceInput, deviceOutput, numElements, deviceScanSumArray);
-    scan<<<dimGridReduce, dimBlock>>>(deviceScanSumArray, deviceScanSumArray, ceil(numElements/(2.0*BLOCK_SIZE)), deviceInput);
-    add<<<dimGrid, dimBlock>>>(deviceScanSumArray, deviceOutput, numElements);
+    scan<<<dimGrid, dimBlock>>>(deviceInput, deviceOutput, numElements, deviceBlockSumArray);
+    scan<<<dimGridReduce, dimBlock>>>(deviceBlockSumArray, deviceBlockSumArray, blockSumSize, nullptr);
+    addOffset<<<dimGrid, dimBlock>>>(deviceOutput, deviceBlockSumArray, numElements);
 
     cudaDeviceSynchronize();
     wbTime_stop(Compute, "Performing CUDA computation");
