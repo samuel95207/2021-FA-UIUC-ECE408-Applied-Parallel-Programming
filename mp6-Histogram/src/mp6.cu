@@ -84,10 +84,17 @@ __global__ void buildHistogramCDF(uint32_t *histogram, float *cdf, int width, in
 
 
 __global__ void imageEqualize(uint8_t *inputImage, uint8_t *outputImage, float *cdf, int width, int height, int channels) {
+    __shared__ float cdfmin;
+
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (threadIdx.x == 0) {
+        cdfmin = cdf[0];
+    }
+    __syncthreads();
+
     if (idx < width * height * channels) {
         uint8_t val = inputImage[idx];
-        float cdfmin = cdf[0];
         float raw = 255.0 * (cdf[val] - cdfmin) / (1.0 - cdfmin);
         outputImage[idx] = (uint8_t)min(float(max(raw, 0.0)), 255.0);
     }
