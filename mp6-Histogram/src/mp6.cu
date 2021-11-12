@@ -25,8 +25,8 @@ __global__ void imageRgbToGrayScale(uint8_t *inputImage, uint8_t *outputImage, i
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < width * height) {
         uint8_t r = inputImage[channels * idx];
-        uint8_t b = inputImage[channels * idx + 1];
-        uint8_t g = inputImage[channels * idx + 2];
+        uint8_t g = inputImage[channels * idx + 1];
+        uint8_t b = inputImage[channels * idx + 2];
         outputImage[idx] = (uint8_t)(0.21 * r + 0.71 * g + 0.07 * b);
     }
 }
@@ -47,7 +47,7 @@ __global__ void buildHistogram(uint8_t *grayScaleImage, uint32_t *histogram, int
     __syncthreads();
 
     if (tx < HISTOGRAM_LENGTH) {
-        atomicAdd(&(histogram[threadIdx.x]), blockHistogram[threadIdx.x]);
+        atomicAdd(&(histogram[tx]), blockHistogram[tx]);
     }
 }
 
@@ -93,6 +93,8 @@ __global__ void imageEqualize(uint8_t *inputImage, uint8_t *outputImage, float *
     }
 }
 
+
+
 int main(int argc, char **argv) {
     wbArg_t args;
     int imageWidth;
@@ -134,6 +136,7 @@ int main(int argc, char **argv) {
 
     size_t floatImageSize = imageWidth * imageHeight * imageChannels * sizeof(float);
     size_t uint8ImageSize = imageWidth * imageHeight * imageChannels * sizeof(uint8_t);
+    size_t uint8GrayImageSize = imageWidth * imageHeight * sizeof(uint8_t);
     size_t histogramSize = HISTOGRAM_LENGTH * sizeof(uint32_t);
     size_t cdfSize = HISTOGRAM_LENGTH * sizeof(float);
 
@@ -142,7 +145,7 @@ int main(int argc, char **argv) {
 
     cudaMalloc((void **)&deviceInputFloatImage, floatImageSize);
     cudaMalloc((void **)&deviceInputUint8Image, uint8ImageSize);
-    cudaMalloc((void **)&deviceGrayScaleUint8Image, uint8ImageSize);
+    cudaMalloc((void **)&deviceGrayScaleUint8Image, uint8GrayImageSize);
     cudaMalloc((void **)&deviceEqualizeUint8Image, uint8ImageSize);
     cudaMalloc((void **)&deviceEqualizeFloatImage, floatImageSize);
 
