@@ -21,12 +21,12 @@ __global__ void imageUint8ToFloat(uint8_t *inputImage, float *outputImage, int w
     }
 }
 
-__global__ void imageRgbToGrayScale(uint8_t *inputImage, uint8_t *outputImage, int width, int height, int channels) {
+__global__ void imageRgbToGrayScale(uint8_t *inputImage, uint8_t *outputImage, int width, int height) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < width * height) {
-        uint8_t r = inputImage[channels * idx];
-        uint8_t g = inputImage[channels * idx + 1];
-        uint8_t b = inputImage[channels * idx + 2];
+        uint8_t r = inputImage[3 * idx];
+        uint8_t g = inputImage[3 * idx + 1];
+        uint8_t b = inputImage[3 * idx + 2];
         outputImage[idx] = (uint8_t)(0.21 * r + 0.71 * g + 0.07 * b);
     }
 }
@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
 
     dimGrid = dim3(ceil((imageWidth * imageHeight) / float(BLOCK_SIZE)), 1, 1);
     dimBlock = dim3(BLOCK_SIZE, 1, 1);
-    imageRgbToGrayScale<<<dimGrid, dimBlock>>>(deviceInputUint8Image, deviceGrayScaleUint8Image, imageWidth, imageHeight, imageChannels);
+    imageRgbToGrayScale<<<dimGrid, dimBlock>>>(deviceInputUint8Image, deviceGrayScaleUint8Image, imageWidth, imageHeight);
     cudaDeviceSynchronize();
 
     wbTime_stop(Compute, "Performing CUDA imageRgbToGrayScale computation");
